@@ -16,9 +16,12 @@
   var content = null;
 
   var aspect = 1; // 当前图形纵横比（w/h）
+  var fitW = 0; // fit 基准尺寸（scale = 1 时的布局尺寸）
+  var fitH = 0;
   var scale = 1;
   var tx = 0;
   var ty = 0;
+  var rafId = 0;
 
   var pointers = new Map();
   var lastX = 0;
@@ -35,9 +38,24 @@
     return Math.min(max, Math.max(min, value));
   }
 
+  // 缩放作用于布局尺寸（width/height）而非 transform: scale：
+  // transform 缩放会按 fit 基准尺寸光栅化后位图拉伸，初始显示尺寸越小
+  // （低分屏 / 手机）放大越模糊；布局缩放让 SVG 与矢量 img 始终按
+  // 目标尺寸重绘，清晰度与初始尺寸和设备像素比无关
   function apply() {
+    content.style.width = fitW * scale + "px";
+    content.style.height = fitH * scale + "px";
     content.style.transform =
-      "translate(calc(-50% + " + tx + "px), calc(-50% + " + ty + "px)) scale(" + scale + ")";
+      "translate(calc(-50% + " + tx + "px), calc(-50% + " + ty + "px))";
+  }
+
+  // 合并同一帧内的连续缩放/拖拽，避免布局重排抖动
+  function scheduleApply() {
+    if (rafId) return;
+    rafId = requestAnimationFrame(function () {
+      rafId = 0;
+      apply();
+    });
   }
 
   // 以屏幕坐标 (px, py) 为锚点缩放到 nextScale，锚点下的内容保持不动
@@ -52,7 +70,7 @@
     scale = nextScale;
     tx = px - cx - contentX * scale;
     ty = py - cy - contentY * scale;
-    apply();
+    scheduleApply();
   }
 
   // 按视口与图形纵横比计算 fit 尺寸，并复位变换（fit = 1x）
@@ -63,17 +81,13 @@
     var availW = stageW * 0.92;
     var availH = stageH * 0.86;
     var ratio = aspect > 0 ? aspect : 1;
-    var width;
-    var height;
     if (ratio >= availW / availH) {
-      width = availW;
-      height = availW / ratio;
+      fitW = availW;
+      fitH = availW / ratio;
     } else {
-      height = availH;
-      width = availH * ratio;
+      fitH = availH;
+      fitW = availH * ratio;
     }
-    content.style.width = width + "px";
-    content.style.height = height + "px";
     scale = 1;
     tx = 0;
     ty = 0;
@@ -240,7 +254,7 @@
       if (movedTotal > CLICK_THRESHOLD) moved = true;
       tx += dx;
       ty += dy;
-      apply();
+      scheduleApply();
     } else if (pointers.size >= 2) {
       var points = Array.from(pointers.values());
       var dist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
