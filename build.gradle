@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id "com.github.node-gradle.node" version "5.0.0"
+    id "io.freefair.lombok" version "8.0.1"
+    id "run.halo.plugin.devtools" version "0.0.7"
+}
+
+group 'run.halo.plugin-text-diagram'
+sourceCompatibility = JavaVersion.VERSION_17
+
+repositories {
+    mavenCentral()
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/releases' }
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://repo.spring.io/milestone' }
+}
+
+dependencies {
+    // 原 2.11.0-SNAPSHOT 已被上游从各仓库清理，Central 最早可用为 2.20.11；
+    // 本插件仅使用 2.x 稳定插件 API，产物仍兼容 requires >=2.11.0
+    implementation platform('run.halo.tools.platform:plugin:2.20.11')
+    compileOnly 'run.halo.app:api'
+
+    testImplementation 'run.halo.app:api'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+node {
+    nodeProjectDir = file("${project.projectDir}/console")
+}
+
+tasks.register('buildFrontend', PnpmTask) {
+    args = ['build']
+    dependsOn('installDepsForUI')
+}
+
+tasks.register('installDepsForUI', PnpmTask) {
+    args = ['install']
+}
+
+build {
+    // build frontend before build
+    tasks.named('compileJava').configure {
+        dependsOn('buildFrontend')
+    }
+}
+
+halo {
+    version = '2.21.0'
+}

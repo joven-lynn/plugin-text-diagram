@@ -1,0 +1,24 @@
+apiVersion: v1alpha1
+kind: Setting
+metadata:
+  name: plugin-text-diagram-settings
+spec:
+  forms:
+    - group: basic
+      label: 基本设置
+      formSchema:
+        - $formkit: text
+          name: dark_class_selector
+          label: 暗黑模式的选择器
+          value: "html[class~=dark]"
+          help: 用于匹配暗黑模式的CSS选择器
+        - $formkit: text
+          name: mermaid_selector
+          label: mermaid-CSS选择器
+          value: "text-diagram[data-type=mermaid]"
+          help: 用于匹配mermaid的CSS选择器
+        - $formkit: checkbox
+          name: lightbox_enabled
+          label: 启用点击放大预览
+          value: true
+          help: 点击文章中的文本绘图块时弹出放大预览，支持滚轮/双指缩放与拖动

@@ -1,0 +1,113 @@
+/*
+ * text-diagram lightbox 样式
+ * 所有选择器以 td-lb- 前缀并限定在弹窗容器内，不影响博客主题
+ */
+
+.td-lb-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2147483000;
+  display: none;
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.td-lb-overlay.td-lb-open {
+  display: block;
+}
+
+.td-lb-stage {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.td-lb-content {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  box-sizing: border-box;
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45);
+  will-change: transform;
+}
+
+/* 覆盖 mermaid svg 的内联 max-width / width，尺寸由弹窗容器控制 */
+.td-lb-content svg,
+.td-lb-content img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  display: block;
+}
+
+.td-lb-content img {
+  object-fit: contain;
+}
+
+/* 暗黑模式底色：标记类由 JSInjector 注入的初始化脚本切换 */
+.td-lb-dark .td-lb-content {
+  background: #18181c;
+}
+
+.td-lb-btn {
+  margin: 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.td-lb-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.td-lb-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.td-lb-toolbar {
+  position: absolute;
+  left: 50%;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: none;
+  gap: 12px;
+}
+
+.td-lb-toolbar .td-lb-btn {
+  width: auto;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: 22px;
+}
+
+/* 触屏设备显示底部工具条（重置 / 关闭），桌面端用双击重置 + Esc */
+@media (pointer: coarse) {
+  .td-lb-toolbar {
+    display: flex;
+  }
+}
